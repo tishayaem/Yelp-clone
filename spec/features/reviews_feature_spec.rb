@@ -13,4 +13,12 @@ feature 'reviewing' do
     expect(current_path).to eq '/restaurants'
     expect(page).to have_content('so so')
   end
+
+  # scenario 'Users can only edit/delete restaurants which they\'ve created'
+  scenario 'Users can only leave one review per restaurant' do
+    sign_up
+    write_review
+    write_review
+    expect(page).to have_content('error')
+ end
 end

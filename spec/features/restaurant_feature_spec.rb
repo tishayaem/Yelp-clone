@@ -6,29 +6,37 @@ feature 'restaurants' do
     scenario 'should display a prompt to add restaurant' do
       visit '/restaurants'
       expect(page).to have_content 'No restaurants yet'
-      expect(page).to have_link 'Add Restaurant'
+      expect(page).to have_link 'Add a restaurant'
     end
   end
 
   context 'adding restaurants' do
     scenario 'should prompt user to create restaurant' do
-      visit '/restaurants'
-      click_link 'Add Restaurant'
+      sign_up
+      click_link 'Add a restaurant'
       fill_in 'Name', with: 'KFC'
-      click_button 'Create'
+      click_button 'Create Restaurant'
       expect(page).to have_content('KFC')
       expect(current_path).to eq '/restaurants'
     end
+
+    scenario 'getting an error if adding a restarant without being signed in' do
+      visit '/restaurants'
+      create_restaurant
+
+    end
+
 end
-    context 'an invalid restaurant' do
-  it 'does not let you submit a name that is too short' do
-    visit '/restaurants'
-    click_link 'Add Restaurant'
-    fill_in 'Name', with: 'kf'
-    click_button 'Create Restaurant'
-    expect(page).not_to have_css 'h2', text: 'kf'
-    expect(page).to have_content 'error'
-  end
+
+  context 'an invalid restaurant' do
+    it 'does not let you submit a name that is too short' do
+      sign_up
+      click_link 'Add a restaurant'
+      fill_in 'Name', with: 'kf'
+      click_button 'Create Restaurant'
+      expect(page).not_to have_css 'h2', text: 'kf'
+      expect(page).to have_content 'error'
+    end
   end
 
   context 'restaurants have been added' do
@@ -60,7 +68,7 @@ end
     before { Restaurant.create name: 'KFC' }
 
     scenario 'let a user edit a restaurant' do
-      visit '/restaurants'
+      sign_up
       click_link 'Edit KFC'
       fill_in 'Name', with: 'Kentucky Fried Chicken'
       click_button 'Update Restaurant'
@@ -70,13 +78,23 @@ end
   end
 
   context 'deleting restaurants' do
-    before {Restaurant.create name: 'KFC'}
-    scenario 'removes restaurant when user clicks delete link' do
 
-    visit '/restaurants'
-    click_link 'Delete KFC'
-    expect(page).not_to have_content "KFC"
-    expect(page).to have_content 'Restaurant deleted successfully'
+    before {Restaurant.create name: 'KFC'}
+
+    scenario 'removes restaurant when user clicks delete link' do
+      sign_up
+      click_link 'Delete KFC'
+      expect(page).not_to have_content "KFC"
+      expect(page).to have_content 'Restaurant deleted successfully'
     end
-  end
+end
+
+  scenario 'deleting a restaurant created by another user' do
+    sign_up
+    create_restaurant
+    sign_out
+    sign_up(email: 'user2@example.com')
+    delete_restaurant
+    expect(page).to have_content('error')
+end
 end
